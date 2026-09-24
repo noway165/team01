@@ -1,0 +1,16 @@
+# .dockerignore
+.git
+.gitignore
+.gitattributes
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+node_modules/
+*.log
+.env
+.env.*
+.vscode/
+README.md
+notes/
+tests/
