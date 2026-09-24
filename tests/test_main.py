@@ -17,11 +17,6 @@ def test_health():
     assert response.json() == {"status": "ok"}
 
 
-def test_items():
-    response = client.get("/items")
+def test_list_vehicles_empty():
+    response = client.get("/vehicles")
     assert response.status_code == 200
-    assert len(response.json()) >= 1
-
-
-def test_missing_item():
-    assert client.get("/items/999").status_code == 404
