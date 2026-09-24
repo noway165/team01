@@ -1,4 +1,5 @@
 # Team
 
-Add one line per member: name · email · GitHub username.
-
+- Kieu Bao Giang · giangbao041@gmail.com · @Zang-1
+- Tang Thoai Lam
+- Nguyen Nam Khoa
