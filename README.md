@@ -34,6 +34,21 @@ Open http://localhost:8000 — you should see a JSON greeting.
 Also try http://localhost:8000/health and http://localhost:8000/docs.
 Press Ctrl+C to stop.
 
+## Run locally
+
+Requirements: Podman 4 or later with a compose provider (or Docker Desktop).
+
+1. `git clone git@github.com:noway165/team01.git`
+2. `cd team01`
+3. `cp .env.example .env` — then set `DB_PASSWORD` (letters and digits only)
+4. `podman compose up --build`
+5. Open http://127.0.0.1:3000 — database check: http://127.0.0.1:3000/health/db
+
+Note: this machine needs `127.0.0.1:3000:8000` in `compose.yml` instead of `3000:8000` due to a Podman 6.0.2 port-publishing issue on Windows.
+
+Stop: `podman compose down`
+Reset the database (data lost): `podman compose down -v`
+
 ## Run the tests
 
 ```bash
@@ -58,8 +73,12 @@ pytest
 |---|---|---|
 | GET | `/` | App name, version and a greeting |
 | GET | `/health` | `{"status": "ok"}` — used by Render and the pipeline |
-| GET | `/items` | A list of items |
-| GET | `/items/{id}` | One item, or 404 |
+| GET | `/vehicles` | List all vehicles |
+| POST | `/vehicles` | Create a vehicle |
+| GET | `/maintenance-records` | List all maintenance records |
+| POST | `/maintenance-records` | Create a maintenance record |
+| POST | `/diagnose` | Placeholder — AI diagnosis, not yet implemented |
+| GET | `/health/db` | `{"db": "ok", "notes": N}` — proves the database connection works |
 | GET | `/docs` | Interactive API documentation |
 
 ## Environment variables
