@@ -1,7 +1,7 @@
 """Vehicle Maintenance Log — 72ITDS30103 Software Development Platforms."""
 
 import os
-
+import psycopg
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
@@ -43,6 +43,23 @@ def health():
     """Used by Render (Lab 3) and the pipeline (Week 6) to check the app is alive."""
     return {"status": "ok"}
 
+@app.get("/health/db")
+def health_db():
+    database_url = os.getenv("DATABASE_URL")
+
+    if not database_url:
+        return {"db": "error", "detail": "DATABASE_URL is not set"}
+
+    try:
+        with psycopg.connect(database_url) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT count(*) AS n FROM notes")
+                row = cur.fetchone()
+
+        return {"db": "ok", "notes": int(row[0])}
+
+    except Exception as err:
+        return {"db": "error", "detail": str(err)}
 
 @app.get("/vehicles")
 def list_vehicles():
