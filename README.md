@@ -33,6 +33,9 @@ or Docker Desktop. On Windows / macOS the Podman machine must be running (`podma
 
 The first build can take several minutes; wait until the `web` service logs `Uvicorn running on http://0.0.0.0:8000`.
 
+The web port is published as `127.0.0.1:3000:8000` (only this laptop can reach it). Plain `3000:8000`
+did not work on one teammate's Windows machine with Podman 6.0.2.
+
 | Action | Command |
 |---|---|
 | Start in the background | `podman compose up --build -d` |
