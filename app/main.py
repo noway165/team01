@@ -1,14 +1,16 @@
 """Vehicle Maintenance Log — 72ITDS30103 Software Development Platforms."""
 
 import os
-import psycopg
 
+import psycopg
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 APP_NAME = os.getenv("APP_NAME", "vehicle-maintenance-log")
 APP_VERSION = "0.1.0"
-DATABASE_URL = os.environ["DATABASE_URL"]
+
+# Connection string comes from the environment, never from the code.
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
 app = FastAPI(title=APP_NAME, version=APP_VERSION)
 
@@ -48,8 +50,15 @@ def health():
 
 @app.get("/health/db")
 def health_db():
-    with psycopg.connect(DATABASE_URL, connect_timeout=3) as conn:
-        n = conn.execute("SELECT count(*) FROM notes").fetchone()[0]
+    """Proves the application itself can reach the database."""
+    if not DATABASE_URL:
+        raise HTTPException(status_code=503, detail="DATABASE_URL is not set")
+    try:
+        with psycopg.connect(DATABASE_URL, connect_timeout=3) as conn:
+            n = conn.execute("SELECT count(*) FROM notes").fetchone()[0]
+    except psycopg.Error as err:
+        print(f"database error: {err}", flush=True)
+        raise HTTPException(status_code=503, detail=str(err))
     return {"db": "ok", "notes": n}
 
 

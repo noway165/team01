@@ -9,4 +9,4 @@ node_modules/
 .env
 .env.*
 .vscode/
-README.md.env
+README.md
