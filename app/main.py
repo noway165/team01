@@ -40,7 +40,7 @@ class SymptomInput(BaseModel):
 
 @app.get("/")
 def root():
-    return {"app": APP_NAME, "version": APP_VERSION, "env": APP_ENV, "message": "Vehicle Maintenance Log API"}
+    return {"app": APP_NAME, "version": APP_VERSION, "env": APP_ENV, "message": "Vehicle Maintenance Log API", "owner": "noway165",}
 
 
 @app.get("/health")
