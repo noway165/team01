@@ -101,5 +101,7 @@ pytest
 | Name | Needed from | Meaning |
 |---|---|---|
 | `APP_NAME` | optional | Name shown by `/` |
+| `APP_ENV` | Week 5 | `development` locally, `production` on Render; shown by `/` |
+| `PORT` | Week 5 | Port uvicorn listens on inside the container (default 8000). Render sets it — do not override |
 | `DB_PASSWORD` | Week 4 | PostgreSQL password, read by `compose.yml` from `.env` |
 | `DATABASE_URL` | Week 4 | PostgreSQL connection string. Set by `compose.yml` (host `db`); set it yourself only when running without containers |
