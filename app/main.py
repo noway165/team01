@@ -9,6 +9,7 @@ from pydantic import BaseModel
 APP_NAME = os.getenv("APP_NAME", "vehicle-maintenance-log")
 APP_VERSION = "0.2.0"
 APP_ENV = os.getenv("APP_ENV", "development")
+BROKEN = os.environ["DEFINITELY_NOT_SET"]
 
 # Connection string comes from the environment, never from the code.
 DATABASE_URL = os.environ.get("DATABASE_URL")
