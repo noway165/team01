@@ -8,6 +8,7 @@ from pydantic import BaseModel
 
 APP_NAME = os.getenv("APP_NAME", "vehicle-maintenance-log")
 APP_VERSION = "0.1.0"
+APP_ENV = os.getenv("APP_ENV", "development")
 
 # Connection string comes from the environment, never from the code.
 DATABASE_URL = os.environ.get("DATABASE_URL")
@@ -39,7 +40,7 @@ class SymptomInput(BaseModel):
 
 @app.get("/")
 def root():
-    return {"app": APP_NAME, "version": APP_VERSION, "message": "Vehicle Maintenance Log API"}
+    return {"app": APP_NAME, "version": APP_VERSION, "env": APP_ENV, "message": "Vehicle Maintenance Log API"}
 
 
 @app.get("/health")
