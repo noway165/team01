@@ -6,7 +6,6 @@ import psycopg
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-
 APP_NAME = os.getenv("APP_NAME", "vehicle-maintenance-log")
 APP_VERSION = "0.2.3"
 APP_ENV = os.getenv("APP_ENV", "development")
