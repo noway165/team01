@@ -19,6 +19,9 @@ jobs:
       - name: Install
         run: pip install -r requirements-dev.txt
 
+      - name: Compile Python
+        run: python -m compileall -q app tests
+
       - name: Lint
         run: ruff check .
 
