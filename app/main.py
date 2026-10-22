@@ -1,19 +1,45 @@
 """Vehicle Maintenance Log — 72ITDS30103 Software Development Platforms."""
 
 import os
+from contextlib import asynccontextmanager
 
 import psycopg
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
+from psycopg_pool import ConnectionPool
 from pydantic import BaseModel
 
 APP_NAME = os.getenv("APP_NAME", "vehicle-maintenance-log")
-APP_VERSION = "0.3.1"
+APP_VERSION = "0.4.0"  # Session 14, Task D: the visible change for this pull request
 APP_ENV = os.getenv("APP_ENV", "development")
 
 # Connection string comes from the environment, never from the code.
-DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE_URL = os.environ["DATABASE_URL"]  # crash at start if it is missing
 
-app = FastAPI(title=APP_NAME, version=APP_VERSION)
+# One pool per running copy of the app. Created closed: tests can import this
+# file without a database; the server opens it at start-up (lifespan below).
+pool = ConnectionPool(
+    DATABASE_URL,
+    min_size=1,
+    max_size=5,  # small pool: several copies run
+    max_lifetime=300,  # recycle: replace after 5 minutes
+    check=ConnectionPool.check_connection,  # pre-ping: test before lending
+    kwargs={
+        "prepare_threshold": None,  # port 6543: no prepared statements
+        "connect_timeout": 5,  # fail fast instead of hanging
+    },
+    open=False,
+)
+
+
+@asynccontextmanager
+async def lifespan(app):
+    pool.open()  # does not wait: the app starts even if the database is paused
+    yield
+    pool.close()  # Render stops the container: return the connections cleanly
+
+
+app = FastAPI(title=APP_NAME, version=APP_VERSION, lifespan=lifespan)
 
 vehicles: dict[int, dict] = {}
 maintenance_records: dict[int, dict] = {}
@@ -51,16 +77,14 @@ def health():
 
 @app.get("/health/db")
 def health_db():
-    """Proves the application itself can reach the database."""
-    if not DATABASE_URL:
-        raise HTTPException(status_code=503, detail="DATABASE_URL is not set")
+    """Proves the database works. Borrows a connection from the pool for one query."""
     try:
-        with psycopg.connect(DATABASE_URL, connect_timeout=3) as conn:
+        with pool.connection(timeout=5) as conn:
             n = conn.execute("SELECT count(*) FROM notes").fetchone()[0]
-    except psycopg.Error as err:
-        print(f"database error: {err}", flush=True)
-        raise HTTPException(status_code=503, detail=str(err))
-    return {"db": "ok", "notes": n}
+        return {"db": "ok", "notes": n}
+    except psycopg.Error as err:  # also PoolTimeout / PoolClosed from the pool
+        print("health/db failed:", type(err).__name__, err, flush=True)  # details to the logs only
+        return JSONResponse(status_code=503, content={"db": "error"})
 
 
 @app.get("/vehicles")

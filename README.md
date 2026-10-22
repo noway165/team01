@@ -56,11 +56,13 @@ python -m venv .venv
 source .venv/Scripts/activate        # Windows Git Bash
 # source .venv/bin/activate          # macOS / Linux
 pip install -r requirements-dev.txt
+export DATABASE_URL=postgresql://app:unused@localhost:5432/appdb   # the app refuses to start without it
 python -m uvicorn app.main:app --port 8000
 ```
 
 Open http://localhost:8000 — you should see a JSON greeting.
 Also try http://localhost:8000/health and http://localhost:8000/docs.
+`/health/db` answers `{"db": "error"}` (503) unless `DATABASE_URL` points at a real database.
 Press Ctrl+C to stop.
 
 ## Run the tests
@@ -90,7 +92,7 @@ pytest
 |---|---|---|
 | GET | `/` | App name, version and a greeting |
 | GET | `/health` | `{"status": "ok"}` — used by Render and the pipeline |
-| GET | `/health/db` | `{"db": "ok", "notes": N}` — proves the app can reach PostgreSQL |
+| GET | `/health/db` | `{"db": "ok", "notes": N}` — proves the app can reach PostgreSQL; `{"db": "error"}` (503) when it cannot |
 | GET / POST | `/vehicles` | List / add vehicles |
 | GET / POST | `/maintenance-records` | List / add maintenance records |
 | POST | `/diagnose` | Symptom diagnosis (placeholder) |
@@ -104,4 +106,4 @@ pytest
 | `APP_ENV` | Week 5 | `development` locally, `production` on Render; shown by `/` |
 | `PORT` | Week 5 | Port uvicorn listens on inside the container (default 8000). Render sets it — do not override |
 | `DB_PASSWORD` | Week 4 | PostgreSQL password, read by `compose.yml` from `.env` |
-| `DATABASE_URL` | Week 4 | PostgreSQL connection string. Set by `compose.yml` (host `db`); set it yourself only when running without containers |
+| `DATABASE_URL` | Week 4 | PostgreSQL connection string, **required** (the app does not start without it). Set by `compose.yml` (host `db`); on Render it is the Supabase transaction pooler URI (port 6543, Week 7); set it yourself when running without containers |
