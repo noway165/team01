@@ -29,7 +29,7 @@ or Docker Desktop. On Windows / macOS the Podman machine must be running (`podma
    `DB_PASSWORD` — letters and digits only. Leave the other lines as they are.
 4. `podman compose up --build`
 5. Open http://localhost:3000 — database check: http://localhost:3000/health/db
-   should return `{"db":"ok","notes":1}` on the first start.
+   should return `{"db":"ok","notes":3}` on the first start.
 
 The first build can take several minutes; wait until the `web` service logs `Uvicorn running on http://0.0.0.0:8000`.
 
@@ -78,7 +78,8 @@ pytest
 | `requirements-dev.txt` | Extra packages for testing only. |
 | `Dockerfile`, `.dockerignore` | Builds the `web` image (Lab 2). |
 | `compose.yml` | Starts `web` and a PostgreSQL `db` with one command (Week 4). |
-| `db/init.sql` | Creates the `notes` table the first time the database volume is created. |
+| `db/schema.sql` | Creates the tables. Safe to run more than once. Run by Compose on the first start, and in the Supabase SQL editor (Week 7). |
+| `db/seed.sql` | Inserts a few demo rows, without duplicates. Run after `schema.sql`. |
 | `tests/` | Tests run by `pytest`, and by the pipeline from Week 6. |
 | `.env.example` | Every environment variable the app reads, with no secret values. |
 | `TEAM.md` | Team members. |
