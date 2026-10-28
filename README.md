@@ -76,6 +76,8 @@ pytest
 | Path | What it is |
 |---|---|
 | `app/main.py` | The application. The FastAPI object is called `app`, so the start command is `app.main:app`. |
+| `app/ai.py` | The only file that knows the AI provider (Lab 5): retries 429/5xx, never retries 4xx, 15 s timeout. |
+| `app/ui.html` | The `/ui` page. Uses `textContent`, never `innerHTML`. |
 | `requirements.txt` | Packages the app needs to run. This is what the Dockerfile installs. |
 | `requirements-dev.txt` | Extra packages for testing only. |
 | `Dockerfile`, `.dockerignore` | Builds the `web` image (Lab 2). |
@@ -96,7 +98,8 @@ pytest
 | GET | `/health/db` | `{"db": "ok", "notes": N}` — proves the app can reach PostgreSQL; `{"db": "error"}` (503) when it cannot |
 | GET / POST | `/vehicles` | List / add vehicles |
 | GET / POST | `/maintenance-records` | List / add maintenance records |
-| POST | `/diagnose` | Symptom diagnosis (placeholder) |
+| POST | `/diagnose` | AI symptom diagnosis (Gemini, called from the server): urgency + advice; 503 with a friendly `message` when the AI is unavailable |
+| GET | `/ui` | One-page diagnosis form that calls `/diagnose` |
 | GET | `/docs` | Interactive API documentation |
 
 ## Environment variables
@@ -108,3 +111,5 @@ pytest
 | `PORT` | Week 5 | Port uvicorn listens on inside the container (default 8000). Render sets it — do not override |
 | `DB_PASSWORD` | Week 4 | PostgreSQL password, read by `compose.yml` from `.env` |
 | `DATABASE_URL` | Week 4 | PostgreSQL connection string, **required** (the app does not start without it). Set by `compose.yml` (host `db`); on Render it is the Supabase transaction pooler URI (port 6543, Week 7); set it yourself when running without containers |
+| `GEMINI_API_KEY` | Week 8 | Google AI Studio key. Only in `.env` and Render's Environment panel, never in the repository. Without it `/diagnose` answers 503 |
+| `AI_MODEL`, `AI_BASE_URL` | optional | Override the model (default `gemini-3.5-flash-lite`) or the OpenAI-compatible provider |

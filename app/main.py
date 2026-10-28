@@ -2,15 +2,20 @@
 
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import psycopg
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from psycopg_pool import ConnectionPool
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+from app import ai
 
 APP_NAME = os.getenv("APP_NAME", "vehicle-maintenance-log")
-APP_VERSION = "0.4.0"  # Session 14, Task D: the visible change for this pull request
+APP_VERSION = "0.5.0"  # Lab 5: the visible change for this pull request
+FRIENDLY = "The AI feature is unavailable right now. Please try again in a minute."
+PAGE = (Path(__file__).parent / "ui.html").read_text(encoding="utf-8")
 APP_ENV = os.getenv("APP_ENV", "development")
 
 # Connection string comes from the environment, never from the code.
@@ -61,7 +66,7 @@ class MaintenanceRecord(BaseModel):
 
 
 class SymptomInput(BaseModel):
-    symptom_text: str
+    symptom_text: str = Field(min_length=1, max_length=8000)  # empty or huge text gets 422
 
 
 @app.get("/")
@@ -115,11 +120,27 @@ def create_record(record: MaintenanceRecord):
     return maintenance_records[next_record_id - 1]
 
 
+@app.get("/ui", response_class=HTMLResponse)
+def ui():
+    """The diagnosis page. It calls only POST /diagnose on this server."""
+    return PAGE
+
+
 @app.post("/diagnose")
 def diagnose(symptom: SymptomInput):
-    # Placeholder — real AI call added in Week 8
+    """The AI call happens here, on the server; the key never reaches the browser."""
+    try:
+        answer = ai.summarize_safe(symptom.symptom_text)
+    except ai.AIUnavailable as err:
+        print("ai failed:", err.reason, flush=True)  # the reason goes to the logs, never the key
+        return JSONResponse(status_code=503, content={"ai_suggestion": None, "message": FRIENDLY})
+    # The prompt asks for LOW / MEDIUM / HIGH on the first line; anything else is "unknown".
+    first, _, rest = answer.partition("\n")
+    urgency = first.strip(" *.:").lower()
+    if urgency not in ("low", "medium", "high"):
+        urgency, rest = "unknown", answer
     return {
         "symptom_text": symptom.symptom_text,
-        "ai_suggestion": "AI integration not yet implemented",
-        "urgency_level": "unknown",
+        "ai_suggestion": rest.strip() or answer,
+        "urgency_level": urgency,
     }
